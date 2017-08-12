@@ -81,18 +81,19 @@ namespace BilibiliDrawBoardHelper {
                 System.Windows.Forms.MessageBox.Show("检查坐标是否为整数.");
                 return;
             }
-            settings.Finished = new Action<int, int>((x, y) => this.Dispatcher.Invoke(() => logBox.Text += string.Format("绘制到点({x}, {y}), 已完成绘制.\n")));
+            settings.Finished = new Action<int, int>((x, y) => this.Dispatcher.Invoke(() => logBox.Text += string.Format("绘制到点({0}, {1}), 已完成绘制.\n", new object[] { x, y })));
             settings.Started = new Action(() => this.Dispatcher.Invoke(() => logBox.Text += "开始绘画.\n"));
             settings.DrawPixelCallback = new Action<bool, bool, string, int>((isSuccess, isStop, message, i) => this.Dispatcher.Invoke(() => {
-                if (isSuccess) 
-                    logBox.Text += string.Format("成功绘制第{i}个像素, ");
+                if (isSuccess)
+                    logBox.Text += string.Format("成功绘制第{0}个像素, ", i);
                 else
-                    logBox.Text += string.Format("绘制第{i}个像素失败, ");
-                if (isStop)
+                    logBox.Text += string.Format("绘制第{0}个像素失败, ", i);
+                if (!isStop)
                     logBox.Text += message;
                 else
-                    logBox.Text += string.Format("由于错误, 已停止绘制, 错误信息: {message}\n");
+                    logBox.Text += string.Format("由于错误, 已停止绘制, 错误信息: {0}\n", message);
             }));
+            DrawHelper.DrawHelper.DrawAsync(settings);
         }
 
         private void openImageBtn_Click(object sender, RoutedEventArgs e) {

@@ -16,7 +16,11 @@ namespace DrawHelper {
 
         const string DRAWBOARD_ACTION_DRAW_URL = "http://api.live.bilibili.com/activity/v1/SummerDraw/draw";
 
-        public static void Draw() {
+        public async static void DrawAsync(DrawSettings setting) {
+            await Task.Run(() => Draw(setting));
+        }
+        public static void Draw(DrawSettings setting) {
+            settings = setting;
             if (!File.Exists(settings.ImagePath)) {
                 System.Windows.Forms.MessageBox.Show("找不到图片啦~");
                 settings.Finished(0, 0);
@@ -50,13 +54,13 @@ namespace DrawHelper {
                     var respone = SendDataByPost(DRAWBOARD_ACTION_DRAW_URL, GetPostData(x, y, colorFlag), ref cookies);
                     var waitTime = Regex.Match(respone, @"(?<=\{""time"":)\d+(?=\})").Value;
                     if (respone.Contains(@"""code"":-400"))
-                        settings.DrawPixelCallback(false, false, "需要等待" + waitTime + "秒", i);
+                        settings.DrawPixelCallback(false, false, "需要等待" + waitTime + "秒\n", i);
                     //Console.WriteLine("第{0}次绘画失败, 需要等待{1}秒~ x = {2},y = {3}", i, waitTime, x, y);
                     else if (respone.Contains(@"""code"":0"))
-                        settings.DrawPixelCallback(true, false, "", i);
+                        settings.DrawPixelCallback(true, false, string.Format("位置({0}, {1}), 开始等待180秒.\n", new object[] { x, y }), i);
                     //Console.WriteLine("第{0}次绘画成功, 开始等待{1}秒~ x = {2},y = {3}", i, waitTime, x, y);
                     else if (respone.Contains(@"""code"":-111")) {
-                        settings.DrawPixelCallback(false, true, "未登录或未绑定手机", i);
+                        settings.DrawPixelCallback(false, true, "未登录或未绑定手机.\n", i);
                         return;
                     }
                     else

@@ -42,7 +42,7 @@
             </StackPanel>
         </Grid>
         <Grid Grid.Column="2">
-            <TextBox x:Name="logBox" IsReadOnly="True">
+            <TextBox x:Name="logBox" TextWrapping="Wrap" IsReadOnly="True">
                 Log will be here...
             </TextBox>
         </Grid>
