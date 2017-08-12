@@ -129,5 +129,20 @@ namespace BilibiliDrawBoardHelper {
         private async void RefreshImageAsync() {
             await Task.Run(() => RefreshImage());
         }
+
+        private void saveImageBtn_Click(object sender, RoutedEventArgs e) {
+            Microsoft.Win32.SaveFileDialog sfd = new Microsoft.Win32.SaveFileDialog();
+            sfd.DefaultExt = ".png";
+            sfd.Filter = "PNG File|*.png";
+            sfd.FileName = "233.png";
+            sfd.AddExtension = true;
+            if (sfd.ShowDialog() == true) {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create((BitmapImage)previewImg.Source));
+                using (var fs = new FileStream(sfd.FileName, System.IO.FileMode.Create)) {
+                    encoder.Save(fs);
+                }
+            }
+        }
     }
 }
