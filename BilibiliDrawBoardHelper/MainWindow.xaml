@@ -4,13 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BilibiliDrawBoardHelper"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="Bilibili Draw Board Helper" Height="556.304" Width="1050" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="709*"/>
-            <ColumnDefinition Width="171*"/>
-            <ColumnDefinition Width="162*"/>
+            <ColumnDefinition Width="428*"/>
+            <ColumnDefinition Width="93*"/>
         </Grid.ColumnDefinitions>
         <Image x:Name="previewImg" Grid.Column="0"/>
         <Grid Margin="5 0 0 0" Grid.Column="1">
@@ -18,34 +18,19 @@
                 <Button x:Name="openImageBtn" Style="{DynamicResource MaterialDesignFlatButton}" Margin="10 15 10 5" FontSize="12" Click="openImageBtn_Click">
                     <TextBlock x:Name="openImageTBlock">打开图片</TextBlock>
                 </Button>
-                <DockPanel>
-                    <TextBlock FontSize="12" VerticalAlignment="Center">绘板起始X位置:</TextBlock>
-                    <TextBox Margin="3" x:Name="startXTBox">0</TextBox>
-                </DockPanel>
-                <DockPanel>
-                    <TextBlock FontSize="12" VerticalAlignment="Center">绘板起始Y位置:</TextBlock>
-                    <TextBox Margin="3" x:Name="startYTBox">0</TextBox>
-                </DockPanel>
-                <DockPanel>
-                    <TextBlock FontSize="12" VerticalAlignment="Center">图片起始X位置:</TextBlock>
-                    <TextBox Margin="3" x:Name="imgStartXTBox">0</TextBox>
-                </DockPanel>
-                <DockPanel>
-                    <TextBlock FontSize="12" VerticalAlignment="Center">图片起始Y位置:</TextBlock>
-                    <TextBox Margin="3" x:Name="imgStartYTBox">0</TextBox>
-                </DockPanel>
-                <TextBlock FontSize="12" VerticalAlignment="Center" Margin="0 10 0 3">Cookie:</TextBlock>
-                <TextBox x:Name="cookieTBox" Margin="5 0 5 0"></TextBox>
+                <TextBox Margin="3" materialDesign:HintAssist.Hint="绘板起始X位置"  x:Name="startXTBox" />
+                <TextBox Margin="3" materialDesign:HintAssist.Hint="绘板起始Y位置" x:Name="startYTBox"/>
+                <TextBox Margin="3" x:Name="imgStartXTBox" materialDesign:HintAssist.Hint="图片起始X位置"/>
+                <TextBox Margin="3" x:Name="imgStartYTBox" materialDesign:HintAssist.Hint="图片起始Y位置" />
+                <TextBlock>Cookie</TextBlock>
+                <TextBox x:Name="DedeuserID" materialDesign:HintAssist.Hint="DedeuserID" Margin="3"></TextBox>
+                <TextBox x:Name="DedeuserID__ckMd5" materialDesign:HintAssist.Hint="DedeuserID__ckMd5" Margin="3"></TextBox>
+                <TextBox x:Name="SESSDATA" materialDesign:HintAssist.Hint="SESSDATA" Margin="3"></TextBox>
                 <Button x:Name="drawBtn" Style="{DynamicResource MaterialDesignFlatButton}" FontSize="15" Margin="10 10 10 0" Click="drawBtn_Click">开始画吧</Button>
+
                 <Button Margin="10 5 10 0" Style="{DynamicResource MaterialDesignFlatButton}" FontSize="13" Click="Button_Click_2">刷新绘板</Button>
                 <Button x:Name="saveImageBtn" Style="{DynamicResource MaterialDesignFlatButton}" FontSize="13" Margin="10 5" Click="saveImageBtn_Click">保存绘板图片</Button>
-                <TextBlock Margin="10" TextWrapping = "Wrap" FontSize="12">请在图片中使用已知的颜色(即绘板中可以用的颜色), 未知颜色会当成透明来处理, 也就是跳过绘制该像素, Alpha值不影响.绘板起始位置指从绘板上开始画的位置, 图片起始位置指从图片上改位置开始读取像素, 目标位置会是该像素在图片上的位置加上绘板起始位置.</TextBlock>
             </StackPanel>
-        </Grid>
-        <Grid Grid.Column="2">
-            <TextBox x:Name="logBox" TextWrapping="Wrap" IsReadOnly="True">
-                Log will be here...
-            </TextBox>
         </Grid>
     </Grid>
 </Window>

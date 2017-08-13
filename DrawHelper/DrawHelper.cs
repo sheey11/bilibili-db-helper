@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
 using System.Net;
 using System.IO;
@@ -13,11 +10,38 @@ namespace DrawHelper {
     public static class DrawHelper {
         private static DrawSettings settings { get; set; }
         private static ColorPalettle palettle = new ColorPalettle();
+        private static Thread drawThread;
+        public static bool IsDrawing {
+            get {
+                return drawThread != null && drawThread.IsAlive;
+            }
+        }
 
         const string DRAWBOARD_ACTION_DRAW_URL = "http://api.live.bilibili.com/activity/v1/SummerDraw/draw";
 
-        public async static void DrawAsync(DrawSettings setting) {
-            await Task.Run(() => Draw(setting));
+        public static bool StopDrawing() {
+            if (drawThread == null || !drawThread.IsAlive) return true;
+            try {
+                drawThread.Start();
+                return true;
+            }
+            catch {
+                return false;
+            }
+        }
+
+
+        public static bool DrawWithNewThread(DrawSettings setting) {
+            try {
+                if (drawThread != null && drawThread.IsAlive) drawThread.Abort();
+                drawThread = new Thread(() => Draw(setting));
+                drawThread.Start();
+                return true;
+            }
+            catch {
+                return false;
+            }
+            //await Task.Run(() => Draw(setting));
         }
         public static void Draw(DrawSettings setting) {
             settings = setting;
@@ -59,7 +83,7 @@ namespace DrawHelper {
                     else if (respone.Contains(@"""code"":0"))
                         settings.DrawPixelCallback(true, false, string.Format("位置({0}, {1}), 开始等待180秒.\n", new object[] { x, y }), i);
                     //Console.WriteLine("第{0}次绘画成功, 开始等待{1}秒~ x = {2},y = {3}", i, waitTime, x, y);
-                    else if (respone.Contains(@"""code"":-111")) {
+                    else if (respone.Contains(@"""code"":-101")) {
                         settings.DrawPixelCallback(false, true, "未登录或未绑定手机.\n", i);
                         return;
                     }
