@@ -17,6 +17,7 @@ using System.Net;
 using System.IO;
 using static BilibiliDrawBoardHelper.Logging;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace BilibiliDrawBoardHelper {
     /// <summary>
@@ -30,51 +31,19 @@ namespace BilibiliDrawBoardHelper {
         private string ImageFilePath = "";
         private const string GET_IMAGE_URL = @"http://api.live.bilibili.com/activity/v1/SummerDraw/bitmap";
 
-        private void Window_Loaded(object sender, RoutedEventArgs e) {
-            RefreshImageAsync();
-        }
-        public string HttpGet(string Url) {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
-            request.Method = "GET";
-            request.ContentType = "text/html;charset=UTF-8";
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream myResponseStream = response.GetResponseStream();
-            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
-            string retString = myStreamReader.ReadToEnd();
-            myStreamReader.Close();
-            myResponseStream.Close();
-
-            return retString;
-        }
-        private BitmapImage BitmapToBitmapImage(System.Drawing.Bitmap bitmap) {
-            BitmapImage bitmapImage = new BitmapImage();
-            using (MemoryStream ms = new MemoryStream()) {
-                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = ms;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                bitmapImage.Freeze();
-            }
-            return bitmapImage;
-        }
-
-        private string GetCookieStr() {
-            if (DedeuserID.Text == "" || DedeuserID__ckMd5.Text == "" || SESSDATA.Text == "")
-                return "";
-            return string.Format("DedeuserID={0}; DedeuserID__ckMd5={1}; SESSDATA={2}", new object[] { DedeuserID.Text, DedeuserID__ckMd5.Text, SESSDATA.Text });
-        }
-
         private void drawBtn_Click(object sender, RoutedEventArgs e) {
+            // 停止按钮
             try {
                 if (DrawHelper.DrawHelper.IsDrawing) {
                     if (DrawHelper.DrawHelper.StopDrawing())
                         drawBtn.Content = "开始画吧";
-                    else
+                    else {
                         System.Windows.Forms.MessageBox.Show("好像出现了什么错误");
+                        return;
+                    }
                 }
 
+                // 判断输入内容
                 var cookie = GetCookieStr();
                 if(cookie == "") {
                     System.Windows.Forms.MessageBox.Show("检查cookie");
@@ -116,17 +85,31 @@ namespace BilibiliDrawBoardHelper {
                 //    return;
                 //}
 
-                settings.Finished = new Action<int, int>((x, y) => this.Dispatcher.Invoke(() => Log(string.Format("绘制到点({0}, {1}), 已完成绘制.\n", new object[] { x, y }))));
-                settings.Started = new Action(() => this.Dispatcher.Invoke(() => Log("开始绘画.\n")));
+                // 添加Callback
+                settings.Finished = new Action<int, int>((x, y) => this.Dispatcher.Invoke(() => {
+                    Log(string.Format("绘制到点({0}, {1}), 已完成绘制.\n", new object[] { x, y }));
+                    stateBar.Text = "已完成.";
+                    drawBtn.Content = "开始画吧";
+                }));
+                settings.Started = new Action(() => this.Dispatcher.Invoke(() => {
+                    Log("开始绘画.\n");
+                    stateBar.Text = "开始绘画.";
+                }));
                 settings.DrawPixelCallback = new Action<bool, bool, string, int>((isSuccess, isStop, message, i) => this.Dispatcher.Invoke(() => {
-                    if (isSuccess)
+                    if (isSuccess) {
                         Log(string.Format("成功绘制第{0}个像素, ", i));
-                    else
+                        stateBar.Text = string.Format("成功绘制第{0}个像素, ", i);
+                    }
+                    else {
                         Log(string.Format("绘制第{0}个像素失败, ", i));
+                        stateBar.Text = string.Format("绘制第{0}个像素失败, ", i);
+                    }
+
                     if (!isStop)
                         Log(message);
                     else {
                         Log(string.Format("由于错误, 已停止绘制, 错误信息: {0}\n", message));
+                        stateBar.Text = "由于错误, 已停止绘制";
                         System.Windows.Forms.MessageBox.Show(string.Format("由于错误, 已停止绘制, 错误信息: {0}\n", message));
                     }
                 }));
@@ -157,6 +140,32 @@ namespace BilibiliDrawBoardHelper {
             RefreshImageAsync();
         }
 
+        public string HttpGet(string Url) {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
+            request.Method = "GET";
+            request.ContentType = "text/html;charset=UTF-8";
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
+            string retString = myStreamReader.ReadToEnd();
+            myStreamReader.Close();
+            myResponseStream.Close();
+
+            return retString;
+        }
+        private BitmapImage BitmapToBitmapImage(System.Drawing.Bitmap bitmap) {
+            BitmapImage bitmapImage = new BitmapImage();
+            using (MemoryStream ms = new MemoryStream()) {
+                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = ms;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze();
+            }
+            return bitmapImage;
+        }
         private void RefreshImage() {
             var palettle = new DrawHelper.ColorPalettle();
             var imageData = HttpGet(GET_IMAGE_URL);
@@ -189,6 +198,67 @@ namespace BilibiliDrawBoardHelper {
                     encoder.Save(fs);
                 }
             }
+        }
+        
+        private string GetCookieStr() {
+            if (DedeuserID.Text == "" || DedeuserID__ckMd5.Text == "" || SESSDATA.Text == "")
+                return "";
+            return string.Format("DedeUserID={0}; DedeUserID__ckMd5={1}; SESSDATA={2}", new object[] { DedeuserID.Text, DedeuserID__ckMd5.Text, SESSDATA.Text });
+        }
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
+            var writer = XmlWriter.Create("config.xml");
+            writer.WriteStartElement("settings");
+            writer.WriteElementString("imagePath", ImageFilePath);
+            writer.WriteElementString("startX", startXTBox.Text);
+            writer.WriteElementString("startY", startYTBox.Text);
+            writer.WriteElementString("imgStartX", imgStartXTBox.Text);
+            writer.WriteElementString("imgStartY", imgStartYTBox.Text);
+            writer.WriteElementString("DedeUserID", DedeuserID.Text);
+            writer.WriteElementString("DedeUserID__ckMd5", DedeuserID__ckMd5.Text);
+            writer.WriteElementString("SESSDATA", SESSDATA.Text);
+            writer.WriteEndElement();
+            writer.Flush();
+            writer.Close();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+            if (File.Exists("config.xml")) {
+                var doc = new XmlDocument();
+                doc.Load("config.xml");
+                var rootNode = doc.SelectSingleNode("settings");
+                foreach(XmlNode node in rootNode.ChildNodes) {
+                    switch (node.Name) {
+                        case "imagePath":
+                            if (!File.Exists(node.InnerText)) continue;
+                            ImageFilePath = node.InnerText;
+                            openImageTBlock.Text = node.InnerText.Split('\\').Last();
+                            break;
+                        case "startX":
+                            startXTBox.Text = node.InnerText;
+                            break;
+                        case "startY":
+                            startYTBox.Text = node.InnerText;
+                            break;
+                        case "imgStartX":
+                            imgStartXTBox.Text = node.InnerText;
+                            break;
+                        case "imgStartY":
+                            imgStartYTBox.Text = node.InnerText;
+                            break;
+                        case "DedeUserID":
+                            DedeuserID.Text = node.InnerText;
+                            break;
+                        case "DedeUserID__ckMd5":
+                            DedeuserID__ckMd5.Text = node.InnerText;
+                            break;
+                        case "SESSDATA":
+                            SESSDATA.Text = node.InnerText;
+                            break;
+                    }
+                }
+            }
+
+            RefreshImageAsync();
         }
     }
 }

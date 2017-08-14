@@ -6,14 +6,14 @@
         xmlns:local="clr-namespace:BilibiliDrawBoardHelper"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Bilibili Draw Board Helper" Height="556.304" Width="1050" Loaded="Window_Loaded">
+        Title="Bilibili Draw Board Helper" Height="556.304" Width="1050" Loaded="Window_Loaded" Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="428*"/>
             <ColumnDefinition Width="93*"/>
         </Grid.ColumnDefinitions>
-        <Image x:Name="previewImg" Grid.Column="0"/>
-        <Grid Margin="5 0 0 0" Grid.Column="1">
+        <Image x:Name="previewImg" Grid.Column="0" Grid.ColumnSpan="2"/>
+        <Grid Margin="5 0 0 0" Grid.Column="1" Opacity="0.9" Background="White">
             <StackPanel>
                 <Button x:Name="openImageBtn" Style="{DynamicResource MaterialDesignFlatButton}" Margin="10 15 10 5" FontSize="12" Click="openImageBtn_Click">
                     <TextBlock x:Name="openImageTBlock">打开图片</TextBlock>
@@ -31,6 +31,7 @@
                 <Button Margin="10 5 10 0" Style="{DynamicResource MaterialDesignFlatButton}" FontSize="13" Click="Button_Click_2">刷新绘板</Button>
                 <Button x:Name="saveImageBtn" Style="{DynamicResource MaterialDesignFlatButton}" FontSize="13" Margin="10 5" Click="saveImageBtn_Click">保存绘板图片</Button>
             </StackPanel>
+            <TextBlock x:Name="stateBar" VerticalAlignment="Bottom" Margin="0 5" TextAlignment="Center" FontSize="13"><Run Text="就绪."/></TextBlock>
         </Grid>
     </Grid>
 </Window>

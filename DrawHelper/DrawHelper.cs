@@ -22,7 +22,7 @@ namespace DrawHelper {
         public static bool StopDrawing() {
             if (drawThread == null || !drawThread.IsAlive) return true;
             try {
-                drawThread.Start();
+                drawThread.Abort();
                 return true;
             }
             catch {
