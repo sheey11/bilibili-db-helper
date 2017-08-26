@@ -29,14 +29,15 @@ namespace BilibiliDrawBoardHelper {
         }
 
         private string ImageFilePath = "";
-        private const string GET_IMAGE_URL = @"http://api.live.bilibili.com/activity/v1/SummerDraw/bitmap";
 
         private void drawBtn_Click(object sender, RoutedEventArgs e) {
             // 停止按钮
             try {
                 if (DrawHelper.DrawHelper.IsDrawing) {
-                    if (DrawHelper.DrawHelper.StopDrawing())
+                    if (DrawHelper.DrawHelper.StopDrawing()) {
                         drawBtn.Content = "开始画吧";
+                        return;
+                    }
                     else {
                         System.Windows.Forms.MessageBox.Show("好像出现了什么错误");
                         return;
@@ -45,11 +46,6 @@ namespace BilibiliDrawBoardHelper {
 
                 // 判断输入内容
                 var cookie = GetCookieStr();
-                if(cookie == "") {
-                    System.Windows.Forms.MessageBox.Show("检查cookie");
-                    return;
-                }
-                
                 if (cookie == "") {
                     System.Windows.Forms.MessageBox.Show("Cookie please");
                     return;
@@ -77,13 +73,6 @@ namespace BilibiliDrawBoardHelper {
                     System.Windows.Forms.MessageBox.Show("坐标越界了.");
                     return;
                 }
-
-                // 检查Cookie
-                //var r = Regex.Match(cookieTBox.Text, @"(.+?=.+?;\s{0,2}){3,}(.+?=.+)").Value == cookieTBox.Text;
-                //if (!r) {
-                //    System.Windows.Forms.MessageBox.Show("检查cookie");
-                //    return;
-                //}
 
                 // 添加Callback
                 settings.Finished = new Action<int, int>((x, y) => this.Dispatcher.Invoke(() => {
@@ -140,47 +129,11 @@ namespace BilibiliDrawBoardHelper {
             RefreshImageAsync();
         }
 
-        public string HttpGet(string Url) {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
-            request.Method = "GET";
-            request.ContentType = "text/html;charset=UTF-8";
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream myResponseStream = response.GetResponseStream();
-            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
-            string retString = myStreamReader.ReadToEnd();
-            myStreamReader.Close();
-            myResponseStream.Close();
-
-            return retString;
-        }
-        private BitmapImage BitmapToBitmapImage(System.Drawing.Bitmap bitmap) {
-            BitmapImage bitmapImage = new BitmapImage();
-            using (MemoryStream ms = new MemoryStream()) {
-                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = ms;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                bitmapImage.Freeze();
-            }
-            return bitmapImage;
-        }
         private void RefreshImage() {
-            var palettle = new DrawHelper.ColorPalettle();
-            var imageData = HttpGet(GET_IMAGE_URL);
-            // Json是啥? NewtonSoft又是啥?
-            imageData = imageData.Replace(@"{""code"":0,""msg"":""success"",""message"":""success"",""data"":{""bitmap"":""", "").Replace(@"""}}", "");
-            var count = imageData.Count();
-            Bitmap img = new Bitmap(1280, 720);
-            for (int i = 0; i < count; i++) {
-                var x = i % 1280;
-                var y = (i - x) / 1280;
-                img.SetPixel(x, y, palettle.ConvertToColor(imageData[i].ToString()));
-            }
-            var sourceImg = BitmapToBitmapImage(img);
+            var sourceImg = BiliBoard.GetBoardBitmapImage();
             this.Dispatcher.Invoke(() => previewImg.Source = sourceImg);
         }
+
         private async void RefreshImageAsync() {
             await Task.Run(() => RefreshImage());
         }
@@ -219,6 +172,7 @@ namespace BilibiliDrawBoardHelper {
             writer.WriteEndElement();
             writer.Flush();
             writer.Close();
+            writer.Dispose();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
@@ -259,6 +213,52 @@ namespace BilibiliDrawBoardHelper {
             }
 
             RefreshImageAsync();
+        }
+
+        private void previewBtn_Click(object sender, RoutedEventArgs e) {
+            // 判断输入内容
+            int imgX, imgY, sX, sY;
+            if (ImageFilePath == "" || !File.Exists(ImageFilePath)) {
+                System.Windows.Forms.MessageBox.Show("Image please");
+                return;
+            }
+            try {
+                imgX = Convert.ToInt32(imgStartXTBox.Text);
+                imgY = Convert.ToInt32(imgStartYTBox.Text);
+                sX = Convert.ToInt32(startXTBox.Text);
+                sY = Convert.ToInt32(startYTBox.Text);
+            }
+            catch {
+                System.Windows.Forms.MessageBox.Show("检查坐标是否为整数.");
+                return;
+            }
+            // ====================
+            var img = Bitmap.FromFile(ImageFilePath);
+
+            var bitmap = BiliBoard.GetBoardImage();
+
+            int clipX = sX - 10, clipY = sY - 10;
+            int clipWidth = img.Width + 20, clipHeight = img.Height + 20;
+        }
+
+        private void PreviewDraw(Bitmap img, Bitmap drawImg, int startX, int startY, int width, int height) {
+            var bmp = new Bitmap(width, height);
+            int maxX = startX + width, maxY = startY + height;
+
+            var palettle = new DrawHelper.ColorPalettle();
+
+            for (var x = startX; x <= maxX; x++) {
+                for (var y = startY; y < maxY; y++) {
+                    // 原画 or 图片
+                    var isInPictureRange = x - startX - width > 0 && y - startY - height > 0;
+                    var flag = isInPictureRange ? palettle.ConvertToFlag(drawImg.GetPixel(x - startX - width, y - startY - height)) : "";
+                    var isDrawable = flag == "" ? false : true;
+
+                    if (isDrawable) {
+                        
+                    }
+                }
+            }
         }
     }
 }
