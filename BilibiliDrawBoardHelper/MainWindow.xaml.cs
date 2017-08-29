@@ -18,6 +18,7 @@ using System.IO;
 using static BilibiliDrawBoardHelper.Logging;
 using System.Text.RegularExpressions;
 using System.Xml;
+using DrawHelper;
 
 namespace BilibiliDrawBoardHelper {
     /// <summary>
@@ -28,7 +29,36 @@ namespace BilibiliDrawBoardHelper {
             InitializeComponent();
         }
 
+        private Bitmap SourceBitmap;
         private string ImageFilePath = "";
+        private HeartBeatConnection heartbeat = new HeartBeatConnection();
+        private ColorPalettle palettle = new ColorPalettle();
+
+
+        private void RefreshImage() {
+            SourceBitmap = BiliBoard.GetBoardImage();
+            var img = BiliBoard.BitmapToBitmapImage(SourceBitmap);
+            this.Dispatcher.Invoke(() => previewImg.Source = img);
+        }
+
+        private async void RefreshImageAsync() {
+            await Task.Run(() => RefreshImage());
+        }
+
+        private void saveImageBtn_Click(object sender, RoutedEventArgs e) {
+            Microsoft.Win32.SaveFileDialog sfd = new Microsoft.Win32.SaveFileDialog();
+            sfd.DefaultExt = ".png";
+            sfd.Filter = "PNG File|*.png";
+            sfd.FileName = "233.png";
+            sfd.AddExtension = true;
+            if (sfd.ShowDialog() == true) {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create((BitmapImage)previewImg.Source));
+                using (var fs = new FileStream(sfd.FileName, System.IO.FileMode.Create)) {
+                    encoder.Save(fs);
+                }
+            }
+        }
 
         private void drawBtn_Click(object sender, RoutedEventArgs e) {
             // 停止按钮
@@ -69,7 +99,7 @@ namespace BilibiliDrawBoardHelper {
                     return;
                 }
 
-                if(settings.StartX > 1280 || settings.StartX<0 || settings.StartY>720 || settings.StartY < 0) {
+                if (settings.StartX > 1280 || settings.StartX < 0 || settings.StartY > 720 || settings.StartY < 0) {
                     System.Windows.Forms.MessageBox.Show("坐标越界了.");
                     return;
                 }
@@ -106,9 +136,9 @@ namespace BilibiliDrawBoardHelper {
                     drawBtn.Content = "停止";
                 else
                     System.Windows.Forms.MessageBox.Show("好像出现了什么错误");
-                
+
             }
-            catch(Exception ex) {
+            catch (Exception ex) {
                 Log(ex.ToString());
                 System.Windows.Forms.MessageBox.Show("好像出现了什么奇怪的错误, 详情请检查日志.");
             }
@@ -129,35 +159,38 @@ namespace BilibiliDrawBoardHelper {
             RefreshImageAsync();
         }
 
-        private void RefreshImage() {
-            var sourceImg = BiliBoard.GetBoardBitmapImage();
-            this.Dispatcher.Invoke(() => previewImg.Source = sourceImg);
-        }
-
-        private async void RefreshImageAsync() {
-            await Task.Run(() => RefreshImage());
-        }
-
-        private void saveImageBtn_Click(object sender, RoutedEventArgs e) {
-            Microsoft.Win32.SaveFileDialog sfd = new Microsoft.Win32.SaveFileDialog();
-            sfd.DefaultExt = ".png";
-            sfd.Filter = "PNG File|*.png";
-            sfd.FileName = "233.png";
-            sfd.AddExtension = true;
-            if (sfd.ShowDialog() == true) {
-                BitmapEncoder encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create((BitmapImage)previewImg.Source));
-                using (var fs = new FileStream(sfd.FileName, System.IO.FileMode.Create)) {
-                    encoder.Save(fs);
-                }
+        private void previewBtn_Click(object sender, RoutedEventArgs e) {
+            // 判断输入内容
+            int imgX, imgY, sX, sY;
+            if (ImageFilePath == "" || !File.Exists(ImageFilePath)) {
+                System.Windows.Forms.MessageBox.Show("Image please");
+                return;
             }
+            try {
+                imgX = Convert.ToInt32(imgStartXTBox.Text);
+                imgY = Convert.ToInt32(imgStartYTBox.Text);
+                sX = Convert.ToInt32(startXTBox.Text);
+                sY = Convert.ToInt32(startYTBox.Text);
+            }
+            catch {
+                System.Windows.Forms.MessageBox.Show("检查坐标是否为整数.");
+                return;
+            }
+            // ====================
+            var img = Bitmap.FromFile(ImageFilePath);
+
+            var bitmap = BiliBoard.GetBoardImage();
+
+            int clipX = sX - 10, clipY = sY - 10;
+            int clipWidth = img.Width + 20, clipHeight = img.Height + 20;
         }
-        
+
         private string GetCookieStr() {
             if (DedeuserID.Text == "" || DedeuserID__ckMd5.Text == "" || SESSDATA.Text == "")
                 return "";
             return string.Format("DedeUserID={0}; DedeUserID__ckMd5={1}; SESSDATA={2}", new object[] { DedeuserID.Text, DedeuserID__ckMd5.Text, SESSDATA.Text });
         }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
             var writer = XmlWriter.Create("config.xml");
             writer.WriteStartElement("settings");
@@ -211,41 +244,23 @@ namespace BilibiliDrawBoardHelper {
                     }
                 }
             }
-
             RefreshImageAsync();
+
+            heartbeat.OnDrawUpdate += OnDrawUpdate;
         }
 
-        private void previewBtn_Click(object sender, RoutedEventArgs e) {
-            // 判断输入内容
-            int imgX, imgY, sX, sY;
-            if (ImageFilePath == "" || !File.Exists(ImageFilePath)) {
-                System.Windows.Forms.MessageBox.Show("Image please");
-                return;
-            }
-            try {
-                imgX = Convert.ToInt32(imgStartXTBox.Text);
-                imgY = Convert.ToInt32(imgStartYTBox.Text);
-                sX = Convert.ToInt32(startXTBox.Text);
-                sY = Convert.ToInt32(startYTBox.Text);
-            }
-            catch {
-                System.Windows.Forms.MessageBox.Show("检查坐标是否为整数.");
-                return;
-            }
-            // ====================
-            var img = Bitmap.FromFile(ImageFilePath);
-
-            var bitmap = BiliBoard.GetBoardImage();
-
-            int clipX = sX - 10, clipY = sY - 10;
-            int clipWidth = img.Width + 20, clipHeight = img.Height + 20;
+        private void OnDrawUpdate(object sender, DrawUpdateEventArgs e) {
+            var color = palettle.ConvertToColor(e.Color);
+            SourceBitmap.SetPixel(e.X, e.Y, color);
+            var img = BiliBoard.BitmapToBitmapImage(SourceBitmap);
+            previewImg.Source = img;
         }
 
         private void PreviewDraw(Bitmap img, Bitmap drawImg, int startX, int startY, int width, int height) {
             var bmp = new Bitmap(width, height);
             int maxX = startX + width, maxY = startY + height;
 
-            var palettle = new DrawHelper.ColorPalettle();
+            var palettle = new ColorPalettle();
 
             for (var x = startX; x <= maxX; x++) {
                 for (var y = startY; y < maxY; y++) {

@@ -27,7 +27,7 @@
                 <TextBox x:Name="DedeuserID__ckMd5" materialDesign:HintAssist.Hint="DedeuserID__ckMd5" Margin="15 3 15 3" Foreground="White"></TextBox>
                 <TextBox x:Name="SESSDATA" materialDesign:HintAssist.Hint="SESSDATA" Margin="15 3 15 3" Foreground="White"></TextBox>
                 <CheckBox VerticalAlignment="Center" Margin="15 5 15 0" Foreground="White">跳过已存在像素</CheckBox>
-                <Button x:Name="previewBtn" Margin="10 10 10 0" materialDesign:ShadowAssist.ShadowDepth="Depth0" Click="Button_Click">预览</Button>
+                <Button x:Name="previewBtn" Margin="10 10 10 0" materialDesign:ShadowAssist.ShadowDepth="Depth0" Click="previewBtn_Click">预览</Button>
                 <Button x:Name="drawBtn" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="15" Margin="10 5 10 0" Click="drawBtn_Click">开始画吧</Button>
 
                 <Button Margin="10 10 10 0" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="13" Click="Button_Click_2">刷新绘板</Button>

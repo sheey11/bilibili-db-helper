@@ -47,7 +47,7 @@ namespace BilibiliDrawBoardHelper {
             return retString;
         }
         
-        private static BitmapImage BitmapToBitmapImage(System.Drawing.Bitmap bitmap) {
+        public static BitmapImage BitmapToBitmapImage(System.Drawing.Bitmap bitmap) {
             BitmapImage bitmapImage = new BitmapImage();
             using (MemoryStream ms = new MemoryStream()) {
                 bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
