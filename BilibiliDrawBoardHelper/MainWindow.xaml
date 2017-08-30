@@ -6,34 +6,42 @@
         xmlns:local="clr-namespace:BilibiliDrawBoardHelper"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Bilibili Draw Board Helper" Height="550" Width="1050" MinHeight="550" MinWidth="1050" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="Bilibili Draw Board Helper" Height="453" Width="442" Loaded="Window_Loaded" Closing="Window_Closing">
     <Grid Background="#FF3C3C3C">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="179"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Image x:Name="previewImg" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
-        <Grid Grid.Column="0" Background="#7F3C3C3C">
+        <Grid>
+            <Image x:Name="previewImg" Grid.Column="0" HorizontalAlignment="Right" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="UniformToFill" />
+            <Grid.Effect>
+                <BlurEffect Radius="30" KernelType="Gaussian"/>
+            </Grid.Effect>
+        </Grid>
+        <Grid Background="#B2616161">
             <StackPanel>
-                <Button x:Name="openImageBtn" materialDesign:ShadowAssist.ShadowDepth="Depth0" Margin="10 15 10 5" FontSize="12" Click="openImageBtn_Click">
+                <Button x:Name="openImageBtn" materialDesign:ShadowAssist.ShadowDepth="Depth0" Margin="132,15,132,5" FontSize="12" Click="openImageBtn_Click">
                     <TextBlock x:Name="openImageTBlock">打开图片</TextBlock>
                 </Button>
-                <TextBox Margin="15 3 15 3" materialDesign:HintAssist.Hint="绘板起始X位置"  x:Name="startXTBox" Foreground="White" />
-                <TextBox Margin="15 3 15 3" materialDesign:HintAssist.Hint="绘板起始Y位置" x:Name="startYTBox" Foreground="White"/>
-                <TextBox Margin="15 3 15 3" x:Name="imgStartXTBox" materialDesign:HintAssist.Hint="图片起始X位置" Foreground="White"/>
-                <TextBox Margin="15 3 15 3" x:Name="imgStartYTBox" materialDesign:HintAssist.Hint="图片起始Y位置" Foreground="White" />
-                <TextBlock Margin="5 5 0 0" Foreground="White">Cookie</TextBlock>
-                <TextBox x:Name="DedeuserID" materialDesign:HintAssist.Hint="DedeuserID" Margin="15 3 15 3" Foreground="White"></TextBox>
-                <TextBox x:Name="DedeuserID__ckMd5" materialDesign:HintAssist.Hint="DedeuserID__ckMd5" Margin="15 3 15 3" Foreground="White"></TextBox>
-                <TextBox x:Name="SESSDATA" materialDesign:HintAssist.Hint="SESSDATA" Margin="15 3 15 3" Foreground="White"></TextBox>
-                <CheckBox VerticalAlignment="Center" Margin="15 5 15 0" Foreground="White">跳过已存在像素</CheckBox>
-                <Button x:Name="previewBtn" Margin="10 10 10 0" materialDesign:ShadowAssist.ShadowDepth="Depth0" Click="previewBtn_Click">预览</Button>
-                <Button x:Name="drawBtn" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="15" Margin="10 5 10 0" Click="drawBtn_Click">开始画吧</Button>
+                <DockPanel Margin="100,3" HorizontalAlignment="Center">
+                    <TextBox Style="{DynamicResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="绘板起始X位置"  x:Name="startXTBox" Foreground="White" />
+                    <TextBox Margin="10 0 0 0" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="绘板起始Y位置" x:Name="startYTBox" Foreground="White"/>
+                </DockPanel>
+                <DockPanel Margin="100,3" HorizontalAlignment="Center">
+                    <TextBox x:Name="imgStartXTBox" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="图片起始X位置" Foreground="White"/>
+                    <TextBox Margin="10 0 0 0" x:Name="imgStartYTBox" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="图片起始Y位置" Foreground="White" />
+                </DockPanel>
+                <TextBlock Margin="132,5,132,0" Foreground="White">Cookies</TextBlock>
+                <TextBox x:Name="DedeuserID" materialDesign:HintAssist.Hint="DedeuserID" Margin="132,3" Foreground="White"></TextBox>
+                <TextBox x:Name="DedeuserID__ckMd5" materialDesign:HintAssist.Hint="DedeuserID__ckMd5" Margin="132,3" Foreground="White"></TextBox>
+                <TextBox x:Name="SESSDATA" materialDesign:HintAssist.Hint="SESSDATA" Margin="132,3" Foreground="White"></TextBox>
+                <CheckBox VerticalAlignment="Center" Margin="132,5,132,0" Foreground="White">跳过已存在像素</CheckBox>
+                <Button x:Name="previewBtn" Margin="100,10,100,0" materialDesign:ShadowAssist.ShadowDepth="Depth0" Click="previewBtn_Click">预览</Button>
 
-                <Button Margin="10 10 10 0" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="13" Click="Button_Click_2">刷新绘板</Button>
-                <Button x:Name="saveImageBtn" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="13" Margin="10 5" Click="saveImageBtn_Click">保存绘板图片</Button>
+                <Button x:Name="saveImageBtn" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="13" Margin="100,5" Click="saveImageBtn_Click">保存绘板图片</Button>
             </StackPanel>
-            <TextBlock x:Name="stateBar" VerticalAlignment="Bottom" Margin="0 5" TextAlignment="Center" FontSize="13" Foreground="White"><Run Text="就绪."/></TextBlock>
+            <Canvas>
+                <Button x:Name="drawBtn" Style="{DynamicResource MaterialDesignFloatingActionButton}" Height="45" Width="45" Click="drawBtn_Click"
+                        Canvas.Bottom="10" Canvas.Right="10">
+                    <materialDesign:PackIcon Kind="Check" Height="25" Width="25"/>
+                </Button>
+            </Canvas>
         </Grid>
     </Grid>
 </Window>

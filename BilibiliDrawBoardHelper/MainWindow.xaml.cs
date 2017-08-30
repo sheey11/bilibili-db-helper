@@ -107,28 +107,28 @@ namespace BilibiliDrawBoardHelper {
                 // 添加Callback
                 settings.Finished = new Action<int, int>((x, y) => this.Dispatcher.Invoke(() => {
                     Log(string.Format("绘制到点({0}, {1}), 已完成绘制.\n", new object[] { x, y }));
-                    stateBar.Text = "已完成.";
+                    //stateBar.Text = "已完成.";
                     drawBtn.Content = "开始画吧";
                 }));
                 settings.Started = new Action(() => this.Dispatcher.Invoke(() => {
                     Log("开始绘画.\n");
-                    stateBar.Text = "开始绘画.";
+                    //stateBar.Text = "开始绘画.";
                 }));
                 settings.DrawPixelCallback = new Action<bool, bool, string, int>((isSuccess, isStop, message, i) => this.Dispatcher.Invoke(() => {
                     if (isSuccess) {
                         Log(string.Format("成功绘制第{0}个像素, ", i));
-                        stateBar.Text = string.Format("成功绘制第{0}个像素, ", i);
+                        //stateBar.Text = string.Format("成功绘制第{0}个像素, ", i);
                     }
                     else {
                         Log(string.Format("绘制第{0}个像素失败, ", i));
-                        stateBar.Text = string.Format("绘制第{0}个像素失败, ", i);
+                        //stateBar.Text = string.Format("绘制第{0}个像素失败, ", i);
                     }
 
                     if (!isStop)
                         Log(message);
                     else {
                         Log(string.Format("由于错误, 已停止绘制, 错误信息: {0}\n", message));
-                        stateBar.Text = "由于错误, 已停止绘制";
+                        //stateBar.Text = "由于错误, 已停止绘制";
                         System.Windows.Forms.MessageBox.Show(string.Format("由于错误, 已停止绘制, 错误信息: {0}\n", message));
                     }
                 }));
@@ -244,7 +244,7 @@ namespace BilibiliDrawBoardHelper {
                     }
                 }
             }
-            RefreshImageAsync();
+            RefreshImage();
 
             heartbeat.OnDrawUpdate += OnDrawUpdate;
         }
@@ -253,7 +253,7 @@ namespace BilibiliDrawBoardHelper {
             var color = palettle.ConvertToColor(e.Color);
             SourceBitmap.SetPixel(e.X, e.Y, color);
             var img = BiliBoard.BitmapToBitmapImage(SourceBitmap);
-            previewImg.Source = img;
+            this.Dispatcher.Invoke(() => previewImg.Source = img);
         }
 
         private void PreviewDraw(Bitmap img, Bitmap drawImg, int startX, int startY, int width, int height) {
